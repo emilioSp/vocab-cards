@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { type Deck, type Card, type CardData } from './types';
 import { useDecks } from './hooks/useDecks';
 import { useCards } from './hooks/useCards';
-import { VIRTUAL_DECKS } from './components/DeckPicker';
+import { useViewManager, type AppMode } from './hooks/useViewManager';
 import TopBar from './components/TopBar';
 import EmptyStateView from './views/EmptyStateView';
 import DeckGridView from './views/DeckGridView';
@@ -11,10 +11,7 @@ import DeckEditor from './components/DeckEditor';
 import CardEditor from './components/CardEditor';
 import LearnView from './views/LearnView';
 import Confirm from './components/Confirm';
-import { updateCard as storageUpdateCard, listCards } from './storage/cardStorage';
-
-type AppMode = 'manage' | 'learn'
-type AppView = { screen: 'home' } | { screen: 'deck-detail'; deckId: string }
+import { updateCard as storageUpdateCard } from './storage/cardStorage';
 
 type ConfirmState = {
   title: string
@@ -31,66 +28,19 @@ export default function App() {
   const { decks, loading: decksLoading, error: decksError, clearError: clearDecksError,
           createDeck, updateDeck, deleteDeck } = useDecks();
 
-  const [mode, setMode]         = useState<AppMode>('manage');
-  const [view, setView]         = useState<AppView>({ screen: 'home' });
-  const [learnDeckId, setLearnDeckId] = useState<string | null>(null);
-  const [deckEditor, setDeckEditor]   = useState<DeckEditorState | null>(null);
-  const [cardEditor, setCardEditor]   = useState<CardEditorState | null>(null);
-  const [confirmDlg, setConfirmDlg]   = useState<ConfirmState | null>(null);
+  const { mode, view, learnDeckId, managedDeckId, currentDeck, learnDeck,
+          setMode, setView, setLearnDeckId } = useViewManager(decks);
 
-  // Cards are loaded per-deck. In learn mode we need cards for the active learn deck.
-  const managedDeckId = view.screen === 'deck-detail' ? view.deckId : '';
-  const learnSourceId = learnDeckId && !['__all__', '__random__'].includes(learnDeckId)
-    ? learnDeckId
-    : '';
+  const [deckEditor, setDeckEditor] = useState<DeckEditorState | null>(null);
+  const [cardEditor, setCardEditor] = useState<CardEditorState | null>(null);
+  const [confirmDlg, setConfirmDlg] = useState<ConfirmState | null>(null);
 
   const { cards: managedCards, createCard, updateCard, deleteCard } = useCards(managedDeckId);
+  const { cards: learnCards } = useCards(learnDeckId ?? '');
 
-  // For virtual decks (all / random) we need all cards across all real decks.
-  // We accumulate them by loading each deck's cards lazily via a separate hook
-  // instance that only runs when the learn deck is a virtual one.
-  const [allCards, setAllCards] = useState<Card[]>([]);
-  useEffect(() => {
-    if (!['__all__', '__random__'].includes(learnDeckId ?? '')) return;
-    // Load all cards from all real decks
-    Promise.all(decks.map(d => listCards(d.id)))
-      .then(results => setAllCards(results.flat()))
-      .catch(() => {});
-  }, [learnDeckId, decks]);
-
-  const { cards: learnDeckCards } = useCards(learnSourceId);
-
-  const learnCards = useMemo(() => {
-    if (!learnDeckId) return [];
-    if (['__all__', '__random__'].includes(learnDeckId)) return allCards;
-    return learnDeckCards;
-  }, [learnDeckId, learnDeckCards, allCards]);
-
-  const learnDeck: Deck | undefined = useMemo(() => {
-    if (!learnDeckId) return decks[0];
-    const virtual = VIRTUAL_DECKS.find(d => d.id === learnDeckId);
-    if (virtual) return virtual;
-    return decks.find(d => d.id === learnDeckId) ?? decks[0];
-  }, [learnDeckId, decks]);
-
-  // Card count map for DeckGrid
   const cardCountByDeckId = useMemo(() => {
-    // We only know counts for the currently managed deck without loading all cards.
-    // For the grid we show a rough count per deck. This is reloaded when needed.
     return Object.fromEntries(decks.map(d => [d.id, d.id === managedDeckId ? managedCards.length : 0]));
   }, [decks, managedDeckId, managedCards]);
-
-  // Switch to manage when last deck is deleted
-  useEffect(() => {
-    if (decks.length === 0) setMode('manage');
-  }, [decks.length]);
-
-  // Default learn deck on entering learn mode
-  useEffect(() => {
-    if (mode === 'learn' && !learnDeckId && decks.length > 0) {
-      setLearnDeckId(decks[0].id);
-    }
-  }, [mode, learnDeckId, decks]);
 
   // Keyboard shortcut: N to create deck or card
   useEffect(() => {
@@ -165,10 +115,10 @@ export default function App() {
     await storageUpdateCard(card.deckId, card.id, { score: (card.score ?? 0) + delta });
   };
 
-  /* ── Current deck (manage) ────────────────────────────────────────────── */
-  const currentDeck = view.screen === 'deck-detail'
-    ? decks.find(d => d.id === view.deckId)
-    : null;
+  const handleModeChange = (m: AppMode) => {
+    if (m === 'learn' && decks.length === 0) return;
+    setMode(m);
+  };
 
   if (decksLoading) {
     return (
@@ -182,10 +132,7 @@ export default function App() {
     <div className="min-h-screen flex flex-col font-sans text-ink antialiased">
       <TopBar
         mode={mode}
-        onModeChange={m => {
-          if (m === 'learn' && (decks.length === 0 || managedCards.length + learnCards.length === 0)) return;
-          setMode(m);
-        }}
+        onModeChange={handleModeChange}
         canLearn={decks.length > 0}
         totalDecks={decks.length}
         totalCards={managedCards.length}
