@@ -1,8 +1,9 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 import { type Deck, type Card, type CardData } from './types';
 import { useDecks } from './hooks/useDecks';
 import { useCards } from './hooks/useCards';
 import { useViewManager, type AppMode } from './hooks/useViewManager';
+import { useModalManager } from './hooks/useModalManager';
 import TopBar from './components/TopBar';
 import EmptyStateView from './views/EmptyStateView';
 import DeckGridView from './views/DeckGridView';
@@ -13,17 +14,6 @@ import LearnView from './views/LearnView';
 import Confirm from './components/Confirm';
 import { updateCard as storageUpdateCard } from './storage/cardStorage';
 
-type ConfirmState = {
-  title: string
-  message: string
-  confirmText: string
-  danger: boolean
-  onConfirm: () => void
-}
-
-type DeckEditorState = Partial<Deck>
-type CardEditorState = Partial<Card> & { deckId: string }
-
 export default function App() {
   const { decks, loading: decksLoading, error: decksError, clearError: clearDecksError,
           createDeck, updateDeck, deleteDeck } = useDecks();
@@ -31,34 +21,35 @@ export default function App() {
   const { mode, view, learnDeckId, managedDeckId, currentDeck, learnDeck,
           setMode, setView, setLearnDeckId } = useViewManager(decks);
 
-  const [deckEditor, setDeckEditor] = useState<DeckEditorState | null>(null);
-  const [cardEditor, setCardEditor] = useState<CardEditorState | null>(null);
-  const [confirmDlg, setConfirmDlg] = useState<ConfirmState | null>(null);
+  const { deckEditor, cardEditor, confirmDlg, hasOpenModal,
+          openCreateDeck, openEditDeck, closeDeckEditor,
+          openCreateCard, openEditCard, closeCardEditor,
+          openConfirm, closeConfirm } = useModalManager();
 
   const { cards: managedCards, createCard, updateCard, deleteCard } = useCards(managedDeckId);
   const { cards: learnCards } = useCards(learnDeckId ?? '');
 
   const cardCountByDeckId = useMemo(() => {
     return Object.fromEntries(decks.map(d => [d.id, d.id === managedDeckId ? managedCards.length : 0]));
-  }, [decks, managedDeckId, managedCards]);
+  }, [decks, managedDeckId, managedCards.length]);
 
   // Keyboard shortcut: N to create deck or card
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       const tag = (e.target as HTMLElement).tagName;
       if (tag === 'INPUT' || tag === 'TEXTAREA') return;
-      if (deckEditor || cardEditor || confirmDlg) return;
+      if (hasOpenModal) return;
       if (e.key.toLowerCase() !== 'n' || mode !== 'manage') return;
       e.preventDefault();
       if (view.screen === 'home') {
-        setDeckEditor({});
+        openCreateDeck();
       } else if (view.screen === 'deck-detail') {
-        setCardEditor({ deckId: view.deckId });
+        openCreateCard(view.deckId);
       }
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [mode, view, deckEditor, cardEditor, confirmDlg]);
+  }, [mode, view, hasOpenModal]);
 
   /* ── Deck handlers ────────────────────────────────────────────────────── */
   const handleSaveDeck = async (name: string, coverColor: string, icon: string) => {
@@ -68,11 +59,11 @@ export default function App() {
     } else {
       await createDeck(name, coverColor, icon);
     }
-    setDeckEditor(null);
+    closeDeckEditor();
   };
 
   const askDeleteDeck = (deck: Deck) => {
-    setConfirmDlg({
+    openConfirm({
       title: `Delete "${deck.name}"?`,
       message: 'All cards in this deck will be permanently deleted.',
       confirmText: 'Delete deck',
@@ -80,8 +71,8 @@ export default function App() {
       onConfirm: async () => {
         await deleteDeck(deck.id);
         setView({ screen: 'home' });
-        setConfirmDlg(null);
-        setDeckEditor(null);
+        closeConfirm();
+        closeDeckEditor();
       },
     });
   };
@@ -94,19 +85,19 @@ export default function App() {
     } else {
       await createCard(data);
     }
-    setCardEditor(null);
+    closeCardEditor();
   };
 
   const askDeleteCard = (card: Card) => {
-    setConfirmDlg({
+    openConfirm({
       title: `Delete "${card.word}"?`,
       message: 'This card will be permanently removed from the deck.',
       confirmText: 'Delete card',
       danger: true,
       onConfirm: async () => {
         await deleteCard(card.id);
-        setConfirmDlg(null);
-        setCardEditor(null);
+        closeConfirm();
+        closeCardEditor();
       },
     });
   };
@@ -146,7 +137,7 @@ export default function App() {
       )}
 
       {decks.length === 0 ? (
-        <EmptyStateView onCreate={() => setDeckEditor({})} />
+        <EmptyStateView onCreate={openCreateDeck} />
       ) : mode === 'learn' && learnDeck ? (
         <LearnView
           deck={learnDeck}
@@ -154,15 +145,15 @@ export default function App() {
           cards={learnCards}
           onPickDeck={id => setLearnDeckId(id)}
           onExit={() => setMode('manage')}
-          onEditCard={card => setCardEditor({ ...card })}
+          onEditCard={openEditCard}
         />
       ) : view.screen === 'home' ? (
         <DeckGridView
           decks={decks}
           cardCountByDeckId={cardCountByDeckId}
           onOpenDeck={id => setView({ screen: 'deck-detail', deckId: id })}
-          onCreate={() => setDeckEditor({})}
-          onEdit={deck => setDeckEditor(deck)}
+          onCreate={openCreateDeck}
+          onEdit={openEditDeck}
         />
       ) : currentDeck ? (
         <DeckDetailView
@@ -170,10 +161,10 @@ export default function App() {
           cards={managedCards}
           onBack={() => setView({ screen: 'home' })}
           onStartLearn={() => { setLearnDeckId(currentDeck.id); setMode('learn'); }}
-          onEditDeck={() => setDeckEditor(currentDeck)}
+          onEditDeck={() => openEditDeck(currentDeck)}
           onDeleteDeck={() => askDeleteDeck(currentDeck)}
-          onCreateCard={() => setCardEditor({ deckId: currentDeck.id })}
-          onEditCard={card => setCardEditor({ ...card })}
+          onCreateCard={() => openCreateCard(currentDeck.id)}
+          onEditCard={openEditCard}
           onDeleteCard={askDeleteCard}
           onScoreCard={handleScoreCard}
         />
@@ -183,7 +174,7 @@ export default function App() {
         <DeckEditor
           deck={deckEditor}
           existingNames={decks.map(d => d.name)}
-          onClose={() => setDeckEditor(null)}
+          onClose={closeDeckEditor}
           onSave={handleSaveDeck}
           onDelete={deckEditor.id ? () => askDeleteDeck(decks.find(d => d.id === deckEditor.id)!) : undefined}
         />
@@ -193,7 +184,7 @@ export default function App() {
         <CardEditor
           card={cardEditor}
           existingWords={managedCards.map(c => c.word)}
-          onClose={() => setCardEditor(null)}
+          onClose={closeCardEditor}
           onSave={handleSaveCard}
           onDelete={cardEditor.id ? () => askDeleteCard(cardEditor as Card) : undefined}
         />
@@ -206,7 +197,7 @@ export default function App() {
           confirmText={confirmDlg.confirmText}
           danger={confirmDlg.danger}
           onConfirm={confirmDlg.onConfirm}
-          onClose={() => setConfirmDlg(null)}
+          onClose={closeConfirm}
         />
       )}
     </div>
