@@ -42,13 +42,6 @@ export default function EmptyStateView({ onCreate }: EmptyStateViewProps) {
             >
               <Icon name="plus" size={16} /> Create your first deck
             </button>
-            <span className="text-ink-300 text-[13px] ml-1.5">
-              Press{' '}
-              <span className="font-mono text-[11px] px-1.5 py-[3px] border border-ink-700/20 rounded-md bg-white text-ink-500">
-                N
-              </span>{' '}
-              anytime
-            </span>
           </div>
         </div>
         <div className="relative h-[420px] [perspective:1200px]" aria-hidden="true">

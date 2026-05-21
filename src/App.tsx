@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from 'react';
+import { useMemo } from 'react';
 import { type Deck, type Card, type CardData } from './types';
 import { useDecks } from './hooks/useDecks';
 import { useCards } from './hooks/useCards';
@@ -21,7 +21,7 @@ export default function App() {
   const { mode, view, learnDeckId, managedDeckId, currentDeck, learnDeck,
           changeMode, setView, setLearnDeckId } = useViewManager(decks);
 
-  const { deckEditor, cardEditor, confirmDlg, hasOpenModal,
+  const { deckEditor, cardEditor, confirmDlg,
           openCreateDeck, openEditDeck, closeDeckEditor,
           openCreateCard, openEditCard, closeCardEditor,
           openConfirm, closeConfirm } = useModalManager();
@@ -34,25 +34,7 @@ export default function App() {
     return Object.fromEntries(decks.map(d => [d.id, d.id === managedDeckId ? cards.length : 0]));
   }, [decks, managedDeckId, cards.length]);
 
-  // Keyboard shortcut: N to create deck or card
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      const tag = (e.target as HTMLElement).tagName;
-      if (tag === 'INPUT' || tag === 'TEXTAREA') return;
-      if (hasOpenModal) return;
-      if (e.key.toLowerCase() !== 'n' || mode !== 'manage') return;
-      e.preventDefault();
-      if (view.screen === 'home') {
-        openCreateDeck();
-      } else if (view.screen === 'deck-detail') {
-        openCreateCard(view.deckId);
-      }
-    };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, [mode, view, hasOpenModal]);
-
-  /* ── Deck handlers ────────────────────────────────────────────────────── */
+/* ── Deck handlers ────────────────────────────────────────────────────── */
   const handleSaveDeck = async (name: string, coverColor: string, icon: string) => {
     if (deckEditor?.id) {
       const existing = decks.find(d => d.id === deckEditor.id)!;
