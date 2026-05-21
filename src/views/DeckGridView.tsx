@@ -1,8 +1,8 @@
 import { type Deck } from '../types';
-import DeckCard from './DeckCard';
-import Icon from './Icon';
+import DeckCard from '../components/DeckCard';
+import Icon from '../components/Icon';
 
-type DeckGridProps = {
+type DeckGridViewProps = {
   decks: Deck[]
   cardCountByDeckId: Record<string, number>
   onOpenDeck: (id: string) => void
@@ -10,7 +10,7 @@ type DeckGridProps = {
   onEdit: (deck: Deck) => void
 }
 
-export default function DeckGrid({ decks, cardCountByDeckId, onOpenDeck, onCreate, onEdit }: DeckGridProps) {
+export default function DeckGridView({ decks, cardCountByDeckId, onOpenDeck, onCreate, onEdit }: DeckGridViewProps) {
   return (
     <div className="max-w-[1180px] mx-auto px-7 pt-9 pb-20 w-full">
       <div className="flex items-end justify-between mb-[22px] gap-5">

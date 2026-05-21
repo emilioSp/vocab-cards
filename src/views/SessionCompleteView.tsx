@@ -1,7 +1,7 @@
 import { type Deck } from '../types';
-import Icon from './Icon';
+import Icon from '../components/Icon';
 
-type SessionCompleteProps = {
+type SessionCompleteViewProps = {
   deck: Deck
   reviewed: { good: number; bad: number; skipped: number }
   onRestart: () => void
@@ -18,7 +18,7 @@ function Stat({ num, label, tone }: { num: number; label: string; tone?: 'good' 
   );
 }
 
-export default function SessionComplete({ deck, reviewed, onRestart, onExit }: SessionCompleteProps) {
+export default function SessionCompleteView({ deck, reviewed, onRestart, onExit }: SessionCompleteViewProps) {
   const total = reviewed.good + reviewed.bad + reviewed.skipped;
   return (
     <div className="flex-1 flex flex-col items-center px-7 py-6 gap-5">

@@ -4,12 +4,12 @@ import { useDecks } from './hooks/useDecks';
 import { useCards } from './hooks/useCards';
 import { VIRTUAL_DECKS } from './components/DeckPicker';
 import TopBar from './components/TopBar';
-import EmptyState from './components/EmptyState';
-import DeckGrid from './components/DeckGrid';
-import DeckDetail from './components/DeckDetail';
+import EmptyStateView from './views/EmptyStateView';
+import DeckGridView from './views/DeckGridView';
+import DeckDetailView from './views/DeckDetailView';
 import DeckEditor from './components/DeckEditor';
 import CardEditor from './components/CardEditor';
-import LearnView from './components/LearnView';
+import LearnView from './views/LearnView';
 import Confirm from './components/Confirm';
 import { updateCard as storageUpdateCard, listCards } from './storage/cardStorage';
 
@@ -199,7 +199,7 @@ export default function App() {
       )}
 
       {decks.length === 0 ? (
-        <EmptyState onCreate={() => setDeckEditor({})} />
+        <EmptyStateView onCreate={() => setDeckEditor({})} />
       ) : mode === 'learn' && learnDeck ? (
         <LearnView
           deck={learnDeck}
@@ -210,7 +210,7 @@ export default function App() {
           onEditCard={card => setCardEditor({ ...card })}
         />
       ) : view.screen === 'home' ? (
-        <DeckGrid
+        <DeckGridView
           decks={decks}
           cardCountByDeckId={cardCountByDeckId}
           onOpenDeck={id => setView({ screen: 'deck-detail', deckId: id })}
@@ -218,7 +218,7 @@ export default function App() {
           onEdit={deck => setDeckEditor(deck)}
         />
       ) : currentDeck ? (
-        <DeckDetail
+        <DeckDetailView
           deck={currentDeck}
           cards={managedCards}
           onBack={() => setView({ screen: 'home' })}

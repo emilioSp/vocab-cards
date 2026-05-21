@@ -1,6 +1,6 @@
-import Icon from './Icon';
+import Icon from '../components/Icon';
 
-type EmptyStateProps = {
+type EmptyStateViewProps = {
   onCreate: () => void
 }
 
@@ -14,7 +14,7 @@ function HeroCard({ className, en, it }: { className: string; en: string; it: st
   );
 }
 
-export default function EmptyState({ onCreate }: EmptyStateProps) {
+export default function EmptyStateView({ onCreate }: EmptyStateViewProps) {
   return (
     <div className="max-w-[1180px] mx-auto px-7 pt-9 pb-20 w-full">
       <div className="mt-[6vh] grid grid-cols-1 md:grid-cols-[1.05fr_.95fr] gap-12 items-center">

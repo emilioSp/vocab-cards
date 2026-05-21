@@ -46,7 +46,8 @@ Names/words are **slugified** (`src/storage/slugify.ts`) before becoming folder/
 |---|---|---|
 | **storage/** | `src/storage/` | Raw FS operations (`tauri-plugin-fs`). `paths.ts` builds all paths. `slugify.ts` normalises names. |
 | **hooks/** | `src/hooks/` | Business logic + React state. Wraps storage, surfaces `error`/`loading` state. |
-| **components/** | `src/components/` | Pure UI — no FS calls, no API calls. One file per component. |
+| **views/** | `src/views/` | Full application screens rendered by `App.tsx`. One file per screen, `View` suffix (e.g. `DeckDetailView`). No FS calls, no API calls. |
+| **components/** | `src/components/` | Atomic, reusable UI pieces used by views or other components. No FS calls, no API calls. |
 | **api/** | `src/api/` | External HTTP (Openverse images, Tatoeba sentences, Free Dictionary fallback). |
 | **types/** | `src/types/index.ts` | Shared types. `Deck`/`Card` are in-memory shapes with derived `id`. `DeckConfig`/`CardData` are on-disk shapes without `id`. |
 
@@ -71,6 +72,7 @@ Modals (`DeckEditor`, `CardEditor`, `Confirm`) are rendered as overlays from `Ap
 - **TypeScript:** use `type`, never `interface`.
 - **Async:** use `async/await` with try/catch, not `.then()` chains.
 - **API files:** one external data source per file in `src/api/`.
+- **Naming:** view files use a `View` suffix (`DeckDetailView`, `LearnView`, …); component files do not.
 - **No Rust changes needed** for new features — stay in JS/TS.
 
 ## FS permissions

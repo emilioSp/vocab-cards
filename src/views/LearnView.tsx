@@ -1,9 +1,9 @@
 import { type Deck, type Card } from '../types';
 import { useLearnSession } from '../hooks/useLearnSession';
-import FlashCard from './FlashCard';
-import DeckPicker from './DeckPicker';
-import SessionComplete from './SessionComplete';
-import Icon from './Icon';
+import FlashCard from '../components/FlashCard';
+import DeckPicker from '../components/DeckPicker';
+import SessionCompleteView from './SessionCompleteView';
+import Icon from '../components/Icon';
 
 function speak(text: string) {
   if (!('speechSynthesis' in window) || !text) return;
@@ -56,7 +56,7 @@ export default function LearnView({ deck, allDecks, cards, onPickDeck, onExit, o
   const { currentCard, idx, total, flipped, streak, reviewed, done, flip, score, skip, goBack, restart } = session;
 
   if (done) {
-    return <SessionComplete deck={deck} reviewed={reviewed} onRestart={restart} onExit={onExit} />;
+    return <SessionCompleteView deck={deck} reviewed={reviewed} onRestart={restart} onExit={onExit} />;
   }
 
   if (!currentCard) {

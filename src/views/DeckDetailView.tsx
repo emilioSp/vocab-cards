@@ -1,9 +1,9 @@
 import { useState, useMemo } from 'react';
 import { type Deck, type Card } from '../types';
-import CardTile from './CardTile';
-import Icon from './Icon';
+import CardTile from '../components/CardTile';
+import Icon from '../components/Icon';
 
-type DeckDetailProps = {
+type DeckDetailViewProps = {
   deck: Deck
   cards: Card[]
   onBack: () => void
@@ -16,10 +16,10 @@ type DeckDetailProps = {
   onScoreCard: (card: Card, delta: number) => void
 }
 
-export default function DeckDetail({
+export default function DeckDetailView({
   deck, cards, onBack, onStartLearn, onEditDeck, onDeleteDeck,
   onCreateCard, onEditCard, onDeleteCard, onScoreCard,
-}: DeckDetailProps) {
+}: DeckDetailViewProps) {
   const [q, setQ] = useState('');
 
   const filtered = useMemo(() => {

@@ -4,6 +4,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "build-checker": "tsc --noEmit",
     "build": "tsc && vite build",
     "preview": "vite preview",
     "tauri": "tauri"
