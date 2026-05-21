@@ -1,4 +1,3 @@
-import { useMemo } from 'react';
 import { type Deck, type Card, type CardData } from './types';
 import { useDecks } from './hooks/useDecks';
 import { useCards } from './hooks/useCards';
@@ -16,7 +15,7 @@ import { updateCard as storageUpdateCard } from './storage/cardStorage';
 
 export default function App() {
   const { decks, loading: decksLoading, error: decksError, clearError: clearDecksError,
-          createDeck, updateDeck, deleteDeck } = useDecks();
+          createDeck, updateDeck, deleteDeck, adjustCardCount } = useDecks();
 
   const { mode, view, learnDeckId, managedDeckId, currentDeck, learnDeck,
           changeMode, setView, setLearnDeckId } = useViewManager(decks);
@@ -30,11 +29,7 @@ export default function App() {
   const activeDeckId = mode === 'learn' ? learnDeckId! : managedDeckId;
   const { cards, createCard, updateCard, deleteCard } = useCards(activeDeckId);
 
-  const cardCountByDeckId = useMemo(() => {
-    return Object.fromEntries(decks.map(d => [d.id, d.id === managedDeckId ? cards.length : 0]));
-  }, [decks, managedDeckId, cards.length]);
-
-/* ── Deck handlers ────────────────────────────────────────────────────── */
+  /* ── Deck handlers ────────────────────────────────────────────────────── */
   const handleSaveDeck = async (name: string, coverColor: string, icon: string) => {
     if (deckEditor?.id) {
       const existing = decks.find(d => d.id === deckEditor.id)!;
@@ -67,6 +62,7 @@ export default function App() {
       await updateCard(cardEditor.id, data);
     } else {
       await createCard(data);
+      adjustCardCount(activeDeckId, +1);
     }
     closeCardEditor();
   };
@@ -79,6 +75,7 @@ export default function App() {
       danger: true,
       onConfirm: async () => {
         await deleteCard(card.id);
+        adjustCardCount(card.deckId, -1);
         closeConfirm();
         closeCardEditor();
       },
@@ -133,7 +130,6 @@ export default function App() {
       ) : view.screen === 'home' ? (
         <DeckGridView
           decks={decks}
-          cardCountByDeckId={cardCountByDeckId}
           onOpenDeck={id => setView({ screen: 'deck-detail', deckId: id })}
           onCreate={openCreateDeck}
           onEdit={openEditDeck}

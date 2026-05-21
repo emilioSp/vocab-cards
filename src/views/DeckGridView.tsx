@@ -4,13 +4,12 @@ import Icon from '../components/Icon';
 
 type DeckGridViewProps = {
   decks: Deck[]
-  cardCountByDeckId: Record<string, number>
   onOpenDeck: (id: string) => void
   onCreate: () => void
   onEdit: (deck: Deck) => void
 }
 
-export default function DeckGridView({ decks, cardCountByDeckId, onOpenDeck, onCreate, onEdit }: DeckGridViewProps) {
+export default function DeckGridView({ decks, onOpenDeck, onCreate, onEdit }: DeckGridViewProps) {
   return (
     <div className="max-w-[1180px] mx-auto px-7 pt-9 pb-20 w-full">
       <div className="flex items-end justify-between mb-[22px] gap-5">
@@ -31,7 +30,7 @@ export default function DeckGridView({ decks, cardCountByDeckId, onOpenDeck, onC
           <DeckCard
             key={deck.id}
             deck={deck}
-            cardCount={cardCountByDeckId[deck.id] ?? 0}
+            cardCount={deck.cardCount}
             onClick={() => onOpenDeck(deck.id)}
             onEdit={() => onEdit(deck)}
           />

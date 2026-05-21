@@ -16,6 +16,7 @@ type UseDecksResult = {
   createDeck: (name: string, coverColor: string, icon: string) => Promise<Deck | null>
   updateDeck: (deck: Deck, newName: string, coverColor: string, icon: string) => Promise<Deck | null>
   deleteDeck: (id: string) => Promise<void>
+  adjustCardCount: (deckId: string, delta: number) => void
 }
 
 export function useDecks(): UseDecksResult {
@@ -81,6 +82,12 @@ export function useDecks(): UseDecksResult {
     }
   }, []);
 
+  const adjustCardCount = useCallback((deckId: string, delta: number) => {
+    setDecks(prev => prev.map(d =>
+      d.id === deckId ? { ...d, cardCount: d.cardCount + delta } : d
+    ));
+  }, []);
+
   return {
     decks,
     loading,
@@ -89,5 +96,6 @@ export function useDecks(): UseDecksResult {
     createDeck: handleCreateDeck,
     updateDeck: handleUpdateDeck,
     deleteDeck: handleDeleteDeck,
+    adjustCardCount,
   };
 }

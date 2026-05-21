@@ -1,13 +1,14 @@
 export type Deck = {
-  id: string         // slugified folder name
+  id: string
   name: string
-  coverColor: string // hex
-  icon: string       // emoji char
+  coverColor: string
+  icon: string
+  cardCount: number
 }
 
 export type Card = {
-  id: string              // slugified word (filename without .json)
-  deckId: string          // parent deck id
+  id: string
+  deckId: string
   word: string
   translation: string
   sampleSentence?: string

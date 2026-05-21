@@ -31,7 +31,12 @@ export async function listDecks(): Promise<Deck[]> {
       const configPath = await deckConfigPath(id);
       const raw = await readTextFile(configPath);
       const config: DeckConfig = JSON.parse(raw);
-      decks.push({ id, ...config });
+      const dir = await deckDir(id);
+      const dirEntries = await readDir(dir);
+      const cardCount = dirEntries.filter(
+        e => !e.isDirectory && e.name.endsWith('.json') && e.name !== '.config.json'
+      ).length;
+      decks.push({ id, ...config, cardCount });
     } catch {
       // Skip folders without a valid .config.json
     }
@@ -50,7 +55,7 @@ export async function createDeck(
   await mkdir(dir, { recursive: true });
   const config: DeckConfig = { name, coverColor, icon };
   await writeTextFile(await deckConfigPath(id), JSON.stringify(config, null, 2));
-  return { id, ...config };
+  return { id, ...config, cardCount: 0 };
 }
 
 export async function updateDeckConfig(
