@@ -39,6 +39,14 @@ Tailwind CSS first, custom CSS only as last resort.
 
 ---
 
+Prefer CSS Grid for layout over flexbox when possible.
+
+**Why:** User preference for consistency and maintainability.
+
+**How to apply:** Use Tailwind grid utility classes. For example, `grid grid-cols-2 gap-4` for a two-column layout with a gap. Use flexbox only for one-dimensional layouts or when grid doesn't fit the use case.
+
+---
+
 Keep logic in JS/TS, avoid Rust when possible (user doesn't know Rust).
 
 **Why:** User explicitly said "stick with JS whenever possible, simpler for me to understand."
