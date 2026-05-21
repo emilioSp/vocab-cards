@@ -19,19 +19,20 @@ export default function App() {
           createDeck, updateDeck, deleteDeck } = useDecks();
 
   const { mode, view, learnDeckId, managedDeckId, currentDeck, learnDeck,
-          setMode, setView, setLearnDeckId } = useViewManager(decks);
+          changeMode, setView, setLearnDeckId } = useViewManager(decks);
 
   const { deckEditor, cardEditor, confirmDlg, hasOpenModal,
           openCreateDeck, openEditDeck, closeDeckEditor,
           openCreateCard, openEditCard, closeCardEditor,
           openConfirm, closeConfirm } = useModalManager();
 
-  const { cards: managedCards, createCard, updateCard, deleteCard } = useCards(managedDeckId);
-  const { cards: learnCards } = useCards(learnDeckId ?? '');
+  // learnDeckId is always set when mode === 'learn' (changeMode sets both atomically)
+  const activeDeckId = mode === 'learn' ? learnDeckId! : managedDeckId;
+  const { cards, createCard, updateCard, deleteCard } = useCards(activeDeckId);
 
   const cardCountByDeckId = useMemo(() => {
-    return Object.fromEntries(decks.map(d => [d.id, d.id === managedDeckId ? managedCards.length : 0]));
-  }, [decks, managedDeckId, managedCards.length]);
+    return Object.fromEntries(decks.map(d => [d.id, d.id === managedDeckId ? cards.length : 0]));
+  }, [decks, managedDeckId, cards.length]);
 
   // Keyboard shortcut: N to create deck or card
   useEffect(() => {
@@ -108,7 +109,7 @@ export default function App() {
 
   const handleModeChange = (m: AppMode) => {
     if (m === 'learn' && decks.length === 0) return;
-    setMode(m);
+    changeMode(m);
   };
 
   if (decksLoading) {
@@ -126,7 +127,7 @@ export default function App() {
         onModeChange={handleModeChange}
         canLearn={decks.length > 0}
         totalDecks={decks.length}
-        totalCards={managedCards.length}
+        totalCards={cards.length}
       />
 
       {decksError && (
@@ -142,9 +143,9 @@ export default function App() {
         <LearnView
           deck={learnDeck}
           allDecks={decks.filter(d => d.id !== learnDeckId)}
-          cards={learnCards}
+          cards={cards}
           onPickDeck={id => setLearnDeckId(id)}
-          onExit={() => setMode('manage')}
+          onExit={() => changeMode('manage')}
           onEditCard={openEditCard}
         />
       ) : view.screen === 'home' ? (
@@ -158,9 +159,9 @@ export default function App() {
       ) : currentDeck ? (
         <DeckDetailView
           deck={currentDeck}
-          cards={managedCards}
+          cards={cards}
           onBack={() => setView({ screen: 'home' })}
-          onStartLearn={() => { setLearnDeckId(currentDeck.id); setMode('learn'); }}
+          onStartLearn={() => { setLearnDeckId(currentDeck.id); changeMode('learn'); }}
           onEditDeck={() => openEditDeck(currentDeck)}
           onDeleteDeck={() => askDeleteDeck(currentDeck)}
           onCreateCard={() => openCreateCard(currentDeck.id)}
@@ -183,7 +184,7 @@ export default function App() {
       {cardEditor !== null && (
         <CardEditor
           card={cardEditor}
-          existingWords={managedCards.map(c => c.word)}
+          existingWords={cards.map(c => c.word)}
           onClose={closeCardEditor}
           onSave={handleSaveCard}
           onDelete={cardEditor.id ? () => askDeleteCard(cardEditor as Card) : undefined}

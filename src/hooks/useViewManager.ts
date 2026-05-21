@@ -11,7 +11,7 @@ type UseViewManagerResult = {
   managedDeckId: string
   currentDeck: Deck | undefined
   learnDeck: Deck | undefined
-  setMode: (m: AppMode) => void
+  changeMode: (m: AppMode) => void
   setView: (v: AppView) => void
   setLearnDeckId: (id: string | null) => void
 }
@@ -25,11 +25,12 @@ export function useViewManager(decks: Deck[]): UseViewManagerResult {
     if (decks.length === 0) setMode('manage');
   }, [decks.length]);
 
-  useEffect(() => {
-    if (mode === 'learn' && !learnDeckId && decks.length > 0) {
+  const changeMode = (m: AppMode) => {
+    setMode(m);
+    if (m === 'learn' && !learnDeckId && decks.length > 0) {
       setLearnDeckId(decks[0].id);
     }
-  }, [mode, learnDeckId, decks]);
+  };
 
   const managedDeckId = view.screen === 'deck-detail' ? view.deckId : '';
   const currentDeck = view.screen === 'deck-detail' ? decks.find(d => d.id === view.deckId) : undefined;
@@ -37,5 +38,5 @@ export function useViewManager(decks: Deck[]): UseViewManagerResult {
     ? (decks.find(d => d.id === learnDeckId) ?? decks[0])
     : decks[0];
 
-  return { mode, view, learnDeckId, managedDeckId, currentDeck, learnDeck, setMode, setView, setLearnDeckId };
+  return { mode, view, learnDeckId, managedDeckId, currentDeck, learnDeck, changeMode, setView, setLearnDeckId };
 }
