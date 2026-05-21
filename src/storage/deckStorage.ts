@@ -4,9 +4,9 @@ import {
   writeTextFile,
   mkdir,
   remove,
-  rename,
   exists,
 } from '@tauri-apps/plugin-fs';
+import { v7 as uuidv7 } from 'uuid';
 import { type Deck, type DeckConfig } from '../types';
 import { slugify } from './slugify';
 import { decksRoot, deckDir, deckConfigPath } from './paths';
@@ -45,17 +45,11 @@ export async function createDeck(
   coverColor: string,
   icon: string,
 ): Promise<Deck> {
-  const id = slugify(name);
+  const id = `${uuidv7()}-${slugify(name)}`;
   const dir = await deckDir(id);
-
-  if (await exists(dir)) {
-    throw new Error(`A deck named "${name}" already exists.`);
-  }
-
   await mkdir(dir, { recursive: true });
   const config: DeckConfig = { name, coverColor, icon };
   await writeTextFile(await deckConfigPath(id), JSON.stringify(config, null, 2));
-
   return { id, ...config };
 }
 
@@ -64,29 +58,6 @@ export async function updateDeckConfig(
   config: DeckConfig,
 ): Promise<void> {
   await writeTextFile(await deckConfigPath(id), JSON.stringify(config, null, 2));
-}
-
-export async function renameDeck(
-  oldId: string,
-  newName: string,
-  coverColor: string,
-  icon: string,
-): Promise<Deck> {
-  const newId = slugify(newName);
-
-  if (newId !== oldId) {
-    const newDir = await deckDir(newId);
-    if (await exists(newDir)) {
-      throw new Error(`A deck named "${newName}" already exists.`);
-    }
-    const oldDir = await deckDir(oldId);
-    await rename(oldDir, newDir);
-  }
-
-  const config: DeckConfig = { name: newName, coverColor, icon };
-  await writeTextFile(await deckConfigPath(newId), JSON.stringify(config, null, 2));
-
-  return { id: newId, ...config };
 }
 
 export async function deleteDeck(id: string): Promise<void> {

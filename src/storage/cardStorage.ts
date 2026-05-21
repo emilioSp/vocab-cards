@@ -3,8 +3,8 @@ import {
   readTextFile,
   writeTextFile,
   remove,
-  exists,
 } from '@tauri-apps/plugin-fs';
+import { v7 as uuidv7 } from 'uuid';
 import { type Card, type CardData } from '../types';
 import { slugify } from './slugify';
 import { deckDir, cardFilePath } from './paths';
@@ -36,16 +36,9 @@ export async function createCard(
   deckId: string,
   data: Omit<CardData, 'score'>,
 ): Promise<Card> {
-  const id = slugify(data.word);
-  const filePath = await cardFilePath(deckId, id);
-
-  if (await exists(filePath)) {
-    throw new Error(`A card for "${data.word}" already exists in this deck.`);
-  }
-
+  const id = `${uuidv7()}-${slugify(data.word)}`;
   const cardData: CardData = { ...data, score: 0 };
-  await writeTextFile(filePath, JSON.stringify(cardData, null, 2));
-
+  await writeTextFile(await cardFilePath(deckId, id), JSON.stringify(cardData, null, 2));
   return { id, deckId, ...cardData };
 }
 
@@ -55,26 +48,8 @@ export async function updateCard(
   data: Partial<CardData>,
 ): Promise<Card> {
   const filePath = await cardFilePath(deckId, cardId);
-  const raw = await readTextFile(filePath);
-  const existing: CardData = JSON.parse(raw);
+  const existing: CardData = JSON.parse(await readTextFile(filePath));
   const updated: CardData = { ...existing, ...data };
-
-  const wordChanged = data.word !== undefined && slugify(data.word) !== cardId;
-
-  if (wordChanged) {
-    const newId = slugify(data.word!);
-    const newPath = await cardFilePath(deckId, newId);
-
-    if (await exists(newPath)) {
-      throw new Error(`A card for "${data.word}" already exists in this deck.`);
-    }
-
-    await writeTextFile(newPath, JSON.stringify(updated, null, 2));
-    await remove(filePath);
-
-    return { id: newId, deckId, ...updated };
-  }
-
   await writeTextFile(filePath, JSON.stringify(updated, null, 2));
   return { id: cardId, deckId, ...updated };
 }

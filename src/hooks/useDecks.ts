@@ -4,7 +4,6 @@ import {
   listDecks,
   createDeck,
   updateDeckConfig,
-  renameDeck,
   deleteDeck,
   ensureDecksRoot,
 } from '../storage/deckStorage';
@@ -47,7 +46,6 @@ export function useDecks(): UseDecksResult {
       setDecks(prev => [...prev, deck].sort((a, b) => a.name.localeCompare(b.name)));
       return deck;
     } catch (e) {
-      console.error(e);
       setError(e instanceof Error ? e.message : 'Failed to create deck.');
       return null;
     }
@@ -60,22 +58,14 @@ export function useDecks(): UseDecksResult {
     icon: string,
   ): Promise<Deck | null> => {
     try {
-      const nameChanged = newName !== deck.name;
-
-      if (nameChanged) {
-        const updated = await renameDeck(deck.id, newName, coverColor, icon);
-        setDecks(prev =>
-          prev.map(d => d.id === deck.id ? updated : d)
-              .sort((a, b) => a.name.localeCompare(b.name)),
-        );
-        return updated;
-      } else {
-        const config = { name: deck.name, coverColor, icon };
-        await updateDeckConfig(deck.id, config);
-        const updated = { ...deck, coverColor, icon };
-        setDecks(prev => prev.map(d => d.id === deck.id ? updated : d));
-        return updated;
-      }
+      const config = { name: newName, coverColor, icon };
+      await updateDeckConfig(deck.id, config);
+      const updated = { ...deck, ...config };
+      setDecks(prev =>
+        prev.map(d => d.id === deck.id ? updated : d)
+            .sort((a, b) => a.name.localeCompare(b.name)),
+      );
+      return updated;
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Failed to update deck.');
       return null;

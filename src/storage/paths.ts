@@ -2,7 +2,6 @@ import { appDataDir, join } from '@tauri-apps/api/path';
 
 async function base(): Promise<string> {
   const appData = await appDataDir();
-  console.log('[paths] appDataDir =', appData);
   return join(appData, 'decks');
 }
 
