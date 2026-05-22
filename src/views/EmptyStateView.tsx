@@ -1,8 +1,7 @@
+import { useDecks } from '../hooks/useDecks';
+import { useModalManager } from '../hooks/useModalManager';
+import DeckEditor from '../components/DeckEditor';
 import Icon from '../components/Icon';
-
-type EmptyStateViewProps = {
-  onCreate: () => void
-}
 
 function HeroCard({ className, en, it }: { className: string; en: string; it: string }) {
   return (
@@ -14,7 +13,15 @@ function HeroCard({ className, en, it }: { className: string; en: string; it: st
   );
 }
 
-export default function EmptyStateView({ onCreate }: EmptyStateViewProps) {
+export default function EmptyStateView() {
+  const { createDeck } = useDecks();
+  const { deckEditor, openCreateDeck, closeDeckEditor } = useModalManager();
+
+  const handleSaveDeck = async (name: string, coverColor: string, icon: string) => {
+    await createDeck(name, coverColor, icon);
+    closeDeckEditor();
+  };
+
   return (
     <div className="max-w-[1180px] mx-auto px-7 pt-9 pb-20 w-full">
       <div className="mt-[6vh] grid grid-cols-1 md:grid-cols-[1.05fr_.95fr] gap-12 items-center">
@@ -37,7 +44,7 @@ export default function EmptyStateView({ onCreate }: EmptyStateViewProps) {
           </p>
           <div className="flex gap-2.5 items-center">
             <button
-              onClick={onCreate}
+              onClick={openCreateDeck}
               className="inline-flex items-center justify-center gap-2 font-semibold whitespace-nowrap transition-all duration-200 active:translate-y-px cursor-pointer px-[18px] py-[11px] rounded-xl text-sm bg-accent text-white shadow-accent hover:bg-accent-600"
             >
               <Icon name="plus" size={16} /> Create your first deck
@@ -50,6 +57,15 @@ export default function EmptyStateView({ onCreate }: EmptyStateViewProps) {
           <HeroCard className="hero-c3 bg-lav" en="cloud" it="nuvola" />
         </div>
       </div>
+
+      {deckEditor !== null && (
+        <DeckEditor
+          deck={deckEditor}
+          existingNames={[] /* safe: this view only renders when decks.length === 0 */}
+          onClose={closeDeckEditor}
+          onSave={handleSaveDeck}
+        />
+      )}
     </div>
   );
 }
