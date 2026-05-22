@@ -21,7 +21,7 @@ export default function App() {
           changeMode, setView, setLearnDeckId } = useViewManager(decks);
 
   const { deckEditor, cardEditor, confirmDlg,
-          openCreateDeck, openEditDeck, closeDeckEditor,
+          openEditDeck, closeDeckEditor,
           openCreateCard, openEditCard, closeCardEditor,
           openConfirm, closeConfirm } = useModalManager();
 
@@ -130,9 +130,10 @@ export default function App() {
       ) : view.screen === 'home' ? (
         <DeckGridView
           decks={decks}
+          createDeck={createDeck}
+          updateDeck={updateDeck}
+          deleteDeck={deleteDeck}
           onOpenDeck={id => setView({ screen: 'deck-detail', deckId: id })}
-          onCreate={openCreateDeck}
-          onEdit={openEditDeck}
         />
       ) : currentDeck ? (
         <DeckDetailView
