@@ -26,7 +26,7 @@ export default function App() {
     <div className="min-h-screen flex flex-col font-sans text-ink antialiased">
       <TopBar
         mode={mode}
-        onModeChange={m => { if (m === 'learn' && decks.length === 0) return; changeMode(m); }}
+        onModeChange={changeMode}
         canLearn={decks.length > 0}
         totalDecks={decks.length}
         totalCards={totalCards}

@@ -8,7 +8,6 @@ type UseViewManagerResult = {
   mode: AppMode
   view: AppView
   learnDeckId: string | null
-  managedDeckId: string
   currentDeck: Deck | undefined
   learnDeck: Deck | undefined
   changeMode: (m: AppMode) => void
@@ -32,11 +31,10 @@ export function useViewManager(decks: Deck[]): UseViewManagerResult {
     }
   };
 
-  const managedDeckId = view.screen === 'deck-detail' ? view.deckId : '';
   const currentDeck = view.screen === 'deck-detail' ? decks.find(d => d.id === view.deckId) : undefined;
   const learnDeck = learnDeckId
     ? (decks.find(d => d.id === learnDeckId) ?? decks[0])
     : decks[0];
 
-  return { mode, view, learnDeckId, managedDeckId, currentDeck, learnDeck, changeMode, setView, setLearnDeckId };
+  return { mode, view, learnDeckId, currentDeck, learnDeck, changeMode, setView, setLearnDeckId };
 }
