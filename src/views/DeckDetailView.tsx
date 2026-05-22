@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
 import { type Deck, type Card, type CardData } from '../types';
+import { useDecks } from '../hooks/useDecks';
 import { useCards } from '../hooks/useCards';
 import { useModalManager } from '../hooks/useModalManager';
 import DeckEditor from '../components/DeckEditor';
@@ -10,18 +11,14 @@ import Icon from '../components/Icon';
 
 type DeckDetailViewProps = {
   deck: Deck
-  allDeckNames: string[]
-  updateDeck: (deck: Deck, name: string, coverColor: string, icon: string) => Promise<unknown>
-  deleteDeck: (id: string) => Promise<void>
-  adjustCardCount: (deckId: string, delta: number) => void
   onBack: () => void
   onStartLearn: () => void
 }
 
-export default function DeckDetailView({
-  deck, allDeckNames, updateDeck, deleteDeck, adjustCardCount, onBack, onStartLearn,
-}: DeckDetailViewProps) {
+export default function DeckDetailView({ deck, onBack, onStartLearn }: DeckDetailViewProps) {
   const [q, setQ] = useState('');
+  const { decks, updateDeck, deleteDeck, adjustCardCount } = useDecks();
+  const allDeckNames = decks.map(d => d.name);
   const { cards, createCard, updateCard, deleteCard } = useCards(deck.id);
   const {
     deckEditor, cardEditor, confirmDlg,

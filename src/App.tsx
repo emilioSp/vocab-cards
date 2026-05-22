@@ -8,8 +8,7 @@ import DeckDetailView from './views/DeckDetailView';
 import LearnView from './views/LearnView';
 
 function AppShell() {
-  const { decks, loading, error, clearError,
-          updateDeck, deleteDeck, adjustCardCount } = useDecks();
+  const { decks, loading, error, clearError } = useDecks();
   const { mode, view, learnDeckId, currentDeck, learnDeck,
           changeMode, setView, setLearnDeckId } = useViewManager();
 
@@ -42,10 +41,6 @@ function AppShell() {
       ) : currentDeck ? (
         <DeckDetailView
           deck={currentDeck}
-          allDeckNames={decks.map(d => d.name)}
-          updateDeck={updateDeck}
-          deleteDeck={deleteDeck}
-          adjustCardCount={adjustCardCount}
           onBack={() => setView({ screen: 'home' })}
           onStartLearn={() => { setLearnDeckId(currentDeck.id); changeMode('learn'); }}
         />
