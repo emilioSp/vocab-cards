@@ -1,9 +1,10 @@
+import { type Deck } from '../types';
 import { useModalManager } from '../hooks/useModalManager';
 import DeckEditor from '../components/DeckEditor';
 import Icon from '../components/Icon';
 
 type EmptyStateViewProps = {
-  createDeck: (name: string, coverColor: string, icon: string) => Promise<unknown>
+  createDeck: (name: string, coverColor: string, icon: string) => Promise<Deck | null>
 }
 
 function HeroCard({ className, en, it }: { className: string; en: string; it: string }) {
@@ -63,7 +64,7 @@ export default function EmptyStateView({ createDeck }: EmptyStateViewProps) {
       {deckEditor !== null && (
         <DeckEditor
           deck={deckEditor}
-          existingNames={[]}
+          existingNames={[] /* safe: this view only renders when decks.length === 0 */}
           onClose={closeDeckEditor}
           onSave={handleSaveDeck}
         />
