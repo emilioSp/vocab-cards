@@ -21,7 +21,7 @@ export default function App() {
 
   const { deckEditor, cardEditor, confirmDlg,
           closeDeckEditor,
-          openEditCard, closeCardEditor,
+          closeCardEditor,
           openConfirm, closeConfirm } = useModalManager();
 
   // learnDeckId is always set when mode === 'learn' (changeMode sets both atomically)
@@ -117,10 +117,8 @@ export default function App() {
         <LearnView
           deck={learnDeck}
           allDecks={decks.filter(d => d.id !== learnDeckId)}
-          cards={cards}
-          onPickDeck={id => setLearnDeckId(id)}
+          onPickDeck={setLearnDeckId}
           onExit={() => changeMode('manage')}
-          onEditCard={openEditCard}
         />
       ) : view.screen === 'home' ? (
         <DeckGridView

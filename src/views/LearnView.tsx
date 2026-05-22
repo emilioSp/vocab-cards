@@ -1,5 +1,8 @@
-import { type Deck, type Card } from '../types';
+import { type Deck, type CardData } from '../types';
+import { useCards } from '../hooks/useCards';
+import { useModalManager } from '../hooks/useModalManager';
 import { useLearnSession } from '../hooks/useLearnSession';
+import CardEditor from '../components/CardEditor';
 import FlashCard from '../components/FlashCard';
 import DeckPicker from '../components/DeckPicker';
 import SessionCompleteView from './SessionCompleteView';
@@ -45,15 +48,28 @@ function VerdictBtn({ variant, hint, title, disabled, onClick, children }: Verdi
 type LearnViewProps = {
   deck: Deck
   allDecks: Deck[]
-  cards: Card[]
   onPickDeck: (id: string) => void
   onExit: () => void
-  onEditCard: (card: Card) => void
 }
 
-export default function LearnView({ deck, allDecks, cards, onPickDeck, onExit, onEditCard }: LearnViewProps) {
+export default function LearnView({ deck, allDecks, onPickDeck, onExit }: LearnViewProps) {
+  const { cards, updateCard, loading } = useCards(deck.id);
+  const { cardEditor, openEditCard, closeCardEditor } = useModalManager();
   const session = useLearnSession(cards);
   const { currentCard, idx, total, flipped, streak, reviewed, done, flip, score, skip, goBack, restart } = session;
+
+  const handleSaveCard = async (data: Omit<CardData, 'score'>) => {
+    if (cardEditor?.id) await updateCard(cardEditor.id, data);
+    closeCardEditor();
+  };
+
+  if (loading) {
+    return (
+      <div className="flex-1 flex items-center justify-center font-sans text-ink-300">
+        Loading…
+      </div>
+    );
+  }
 
   if (done) {
     return <SessionCompleteView deck={deck} reviewed={reviewed} onRestart={restart} onExit={onExit} />;
@@ -99,7 +115,7 @@ export default function LearnView({ deck, allDecks, cards, onPickDeck, onExit, o
         </div>
       </div>
 
-      {/* Row 2: Flashcard — fills remaining space */}
+      {/* Row 2: Flashcard */}
       <div className="flex items-center justify-center min-h-0">
         <FlashCard
           card={currentCard}
@@ -128,7 +144,7 @@ export default function LearnView({ deck, allDecks, cards, onPickDeck, onExit, o
 
       {/* Row 4: Bottom CTAs */}
       <div className="flex gap-2 text-ink-300 text-xs justify-center">
-        <button onClick={() => onEditCard(currentCard)}
+        <button onClick={() => openEditCard(currentCard)}
           className="inline-flex items-center justify-center gap-2 font-semibold whitespace-nowrap transition-all duration-200 active:translate-y-px cursor-pointer px-3 py-[7px] rounded-[10px] text-[12.5px] bg-transparent text-ink-500 hover:text-ink-700 hover:bg-ink-700/5 border-0">
           <Icon name="edit" size={13} /> Edit this card
         </button>
@@ -137,6 +153,15 @@ export default function LearnView({ deck, allDecks, cards, onPickDeck, onExit, o
           <Icon name="folder" size={13} /> Manage decks
         </button>
       </div>
+
+      {cardEditor !== null && (
+        <CardEditor
+          card={cardEditor}
+          existingWords={cards.map(c => c.word)}
+          onClose={closeCardEditor}
+          onSave={handleSaveCard}
+        />
+      )}
     </div>
   );
 }
