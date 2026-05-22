@@ -57,7 +57,7 @@ export default function LearnView({ deck, onPickDeck, onExit }: LearnViewProps) 
   const allDecks = decks.filter(d => d.id !== deck.id);
   const { cards, updateCard, loading } = useCards(deck.id);
   const { cardEditor, openEditCard, closeCardEditor } = useModalManager();
-  const session = useLearnSession(cards);
+  const session = useLearnSession(cards, updateCard);
   const { currentCard, idx, total, flipped, streak, reviewed, done, flip, score, skip, goBack, restart } = session;
 
   const handleSaveCard = async (data: Omit<CardData, 'score'>) => {

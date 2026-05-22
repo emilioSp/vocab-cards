@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { type Card, type CardData } from '../types';
-import { updateCard } from '../storage/cardStorage';
 
 type Reviewed = { good: number; bad: number; skipped: number }
 
@@ -26,7 +25,10 @@ function weightedShuffle(cards: Card[]): Card[] {
     .map(x => x.card);
 }
 
-export function useLearnSession(cards: Card[]): UseLearnSessionResult {
+export function useLearnSession(
+  cards: Card[],
+  updateCard: (cardId: string, data: Partial<CardData>) => Promise<unknown>,
+): UseLearnSessionResult {
   const [order, setOrder] = useState<Card[]>([]);
   const [idx, setIdx] = useState(0);
   const [flipped, setFlipped] = useState(false);
@@ -68,7 +70,7 @@ export function useLearnSession(cards: Card[]): UseLearnSessionResult {
     if (!current) return;
 
     const newScore = (current.score ?? 0) + delta;
-    updateCard(current.deckId, current.id, { score: newScore } as Partial<CardData>).catch((e) => {
+    updateCard(current.id, { score: newScore } as Partial<CardData>).catch((e) => {
       console.error(e);
     });
 
