@@ -37,7 +37,7 @@ export default function DeckGridView({ onOpenDeck }: DeckGridViewProps) {
     },
   });
 
-  if (decks.length === 0) return <EmptyStateView createDeck={createDeck} />;
+  if (decks.length === 0) return <EmptyStateView />;
 
   return (
     <div className="max-w-[1180px] mx-auto px-7 pt-9 pb-20 w-full">

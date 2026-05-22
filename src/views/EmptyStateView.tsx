@@ -1,11 +1,7 @@
-import { type Deck } from '../types';
+import { useDecks } from '../hooks/useDecks';
 import { useModalManager } from '../hooks/useModalManager';
 import DeckEditor from '../components/DeckEditor';
 import Icon from '../components/Icon';
-
-type EmptyStateViewProps = {
-  createDeck: (name: string, coverColor: string, icon: string) => Promise<Deck | null>
-}
 
 function HeroCard({ className, en, it }: { className: string; en: string; it: string }) {
   return (
@@ -17,7 +13,8 @@ function HeroCard({ className, en, it }: { className: string; en: string; it: st
   );
 }
 
-export default function EmptyStateView({ createDeck }: EmptyStateViewProps) {
+export default function EmptyStateView() {
+  const { createDeck } = useDecks();
   const { deckEditor, openCreateDeck, closeDeckEditor } = useModalManager();
 
   const handleSaveDeck = async (name: string, coverColor: string, icon: string) => {
