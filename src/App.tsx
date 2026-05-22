@@ -11,7 +11,6 @@ import DeckEditor from './components/DeckEditor';
 import CardEditor from './components/CardEditor';
 import LearnView from './views/LearnView';
 import Confirm from './components/Confirm';
-import { updateCard as storageUpdateCard } from './storage/cardStorage';
 
 export default function App() {
   const { decks, loading: decksLoading, error: decksError, clearError: clearDecksError,
@@ -21,8 +20,8 @@ export default function App() {
           changeMode, setView, setLearnDeckId } = useViewManager(decks);
 
   const { deckEditor, cardEditor, confirmDlg,
-          openEditDeck, closeDeckEditor,
-          openCreateCard, openEditCard, closeCardEditor,
+          closeDeckEditor,
+          openEditCard, closeCardEditor,
           openConfirm, closeConfirm } = useModalManager();
 
   // learnDeckId is always set when mode === 'learn' (changeMode sets both atomically)
@@ -82,10 +81,6 @@ export default function App() {
     });
   };
 
-  const handleScoreCard = async (card: Card, delta: number) => {
-    await storageUpdateCard(card.deckId, card.id, { score: (card.score ?? 0) + delta });
-  };
-
   const handleModeChange = (m: AppMode) => {
     if (m === 'learn' && decks.length === 0) return;
     changeMode(m);
@@ -138,15 +133,12 @@ export default function App() {
       ) : currentDeck ? (
         <DeckDetailView
           deck={currentDeck}
-          cards={cards}
+          allDeckNames={decks.map(d => d.name)}
+          updateDeck={updateDeck}
+          deleteDeck={deleteDeck}
+          adjustCardCount={adjustCardCount}
           onBack={() => setView({ screen: 'home' })}
           onStartLearn={() => { setLearnDeckId(currentDeck.id); changeMode('learn'); }}
-          onEditDeck={() => openEditDeck(currentDeck)}
-          onDeleteDeck={() => askDeleteDeck(currentDeck)}
-          onCreateCard={() => openCreateCard(currentDeck.id)}
-          onEditCard={openEditCard}
-          onDeleteCard={askDeleteCard}
-          onScoreCard={handleScoreCard}
         />
       ) : null}
 

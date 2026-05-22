@@ -1,26 +1,34 @@
 import { useState, useMemo } from 'react';
-import { type Deck, type Card } from '../types';
+import { type Deck, type Card, type CardData } from '../types';
+import { useCards } from '../hooks/useCards';
+import { useModalManager } from '../hooks/useModalManager';
+import DeckEditor from '../components/DeckEditor';
+import CardEditor from '../components/CardEditor';
+import Confirm from '../components/Confirm';
 import CardTile from '../components/CardTile';
 import Icon from '../components/Icon';
 
 type DeckDetailViewProps = {
   deck: Deck
-  cards: Card[]
+  allDeckNames: string[]
+  updateDeck: (deck: Deck, name: string, coverColor: string, icon: string) => Promise<unknown>
+  deleteDeck: (id: string) => Promise<void>
+  adjustCardCount: (deckId: string, delta: number) => void
   onBack: () => void
   onStartLearn: () => void
-  onEditDeck: () => void
-  onDeleteDeck: () => void
-  onCreateCard: () => void
-  onEditCard: (card: Card) => void
-  onDeleteCard: (card: Card) => void
-  onScoreCard: (card: Card, delta: number) => void
 }
 
 export default function DeckDetailView({
-  deck, cards, onBack, onStartLearn, onEditDeck, onDeleteDeck,
-  onCreateCard, onEditCard, onDeleteCard, onScoreCard,
+  deck, allDeckNames, updateDeck, deleteDeck, adjustCardCount, onBack, onStartLearn,
 }: DeckDetailViewProps) {
   const [q, setQ] = useState('');
+  const { cards, createCard, updateCard, deleteCard } = useCards(deck.id);
+  const {
+    deckEditor, cardEditor, confirmDlg,
+    openEditDeck, closeDeckEditor,
+    openCreateCard, openEditCard, closeCardEditor,
+    openConfirm, closeConfirm,
+  } = useModalManager();
 
   const filtered = useMemo(() => {
     if (!q.trim()) return cards;
@@ -31,6 +39,50 @@ export default function DeckDetailView({
       (c.sampleSentence ?? '').toLowerCase().includes(k),
     );
   }, [q, cards]);
+
+  const handleSaveDeck = async (name: string, coverColor: string, icon: string) => {
+    await updateDeck(deck, name, coverColor, icon);
+    closeDeckEditor();
+  };
+
+  const askDeleteDeck = () => openConfirm({
+    title: `Delete "${deck.name}"?`,
+    message: 'All cards in this deck will be permanently deleted.',
+    confirmText: 'Delete deck',
+    danger: true,
+    onConfirm: async () => {
+      await deleteDeck(deck.id);
+      closeConfirm();
+      onBack();
+    },
+  });
+
+  const handleSaveCard = async (data: Omit<CardData, 'score'>) => {
+    if (cardEditor?.id) {
+      await updateCard(cardEditor.id, data);
+    } else {
+      await createCard(data);
+      adjustCardCount(deck.id, +1);
+    }
+    closeCardEditor();
+  };
+
+  const askDeleteCard = (card: Card) => openConfirm({
+    title: `Delete "${card.word}"?`,
+    message: 'This card will be permanently removed from the deck.',
+    confirmText: 'Delete card',
+    danger: true,
+    onConfirm: async () => {
+      await deleteCard(card.id);
+      adjustCardCount(deck.id, -1);
+      closeConfirm();
+      closeCardEditor();
+    },
+  });
+
+  const handleScoreCard = async (card: Card, delta: number) => {
+    await updateCard(card.id, { score: (card.score ?? 0) + delta });
+  };
 
   return (
     <div className="max-w-[1180px] mx-auto px-7 pt-9 pb-20 w-full">
@@ -52,13 +104,13 @@ export default function DeckDetailView({
         </div>
         <div className="flex gap-2.5 items-center">
           <button
-            onClick={onEditDeck}
+            onClick={() => openEditDeck(deck)}
             className="inline-flex items-center justify-center gap-2 font-semibold whitespace-nowrap transition-all duration-200 active:translate-y-px cursor-pointer px-3 py-[7px] rounded-[10px] text-[12.5px] bg-transparent text-ink-700 border border-ink-700/20 hover:bg-ink-700/5"
           >
             <Icon name="edit" size={14} /> Edit deck
           </button>
           <button
-            onClick={onDeleteDeck}
+            onClick={askDeleteDeck}
             className="inline-flex items-center justify-center gap-2 font-semibold whitespace-nowrap transition-all duration-200 active:translate-y-px cursor-pointer px-3 py-[7px] rounded-[10px] text-[12.5px] bg-transparent text-bad-700 border border-bad/30 hover:bg-bad/10"
           >
             <Icon name="trash" size={14} /> Delete
@@ -106,7 +158,7 @@ export default function DeckDetailView({
           <h3 className="m-0 mb-1.5 text-ink-700 font-display font-bold">This deck is empty</h3>
           <p className="my-1 mb-[18px] text-sm">Add your first card to start learning.</p>
           <button
-            onClick={onCreateCard}
+            onClick={() => openCreateCard(deck.id)}
             className="inline-flex items-center justify-center gap-2 font-semibold whitespace-nowrap transition-all duration-200 active:translate-y-px cursor-pointer px-[18px] py-[11px] rounded-xl text-sm bg-accent text-white shadow-accent hover:bg-accent-600"
           >
             <Icon name="plus" size={16} /> Add card
@@ -118,13 +170,13 @@ export default function DeckDetailView({
             <CardTile
               key={card.id}
               card={card}
-              onEdit={() => onEditCard(card)}
-              onDelete={() => onDeleteCard(card)}
-              onScore={delta => onScoreCard(card, delta)}
+              onEdit={() => openEditCard(card)}
+              onDelete={() => askDeleteCard(card)}
+              onScore={delta => handleScoreCard(card, delta)}
             />
           ))}
           <div
-            onClick={onCreateCard}
+            onClick={() => openCreateCard(deck.id)}
             className="border-2 border-dashed border-ink-700/20 bg-transparent flex flex-col items-center justify-center text-center cursor-pointer min-h-[240px] text-ink-300 gap-2.5 p-[18px] rounded-[14px] hover:border-accent hover:text-accent hover:bg-accent/5 transition-colors"
           >
             <div className="w-11 h-11 rounded-full bg-ink-700/[.08] grid place-items-center">
@@ -133,6 +185,35 @@ export default function DeckDetailView({
             <div className="font-semibold text-sm">Add card</div>
           </div>
         </div>
+      )}
+
+      {deckEditor !== null && (
+        <DeckEditor
+          deck={deckEditor}
+          existingNames={allDeckNames}
+          onClose={closeDeckEditor}
+          onSave={handleSaveDeck}
+          onDelete={() => askDeleteDeck()}
+        />
+      )}
+      {cardEditor !== null && (
+        <CardEditor
+          card={cardEditor}
+          existingWords={cards.map(c => c.word)}
+          onClose={closeCardEditor}
+          onSave={handleSaveCard}
+          onDelete={cardEditor.id ? () => askDeleteCard(cardEditor as Card) : undefined}
+        />
+      )}
+      {confirmDlg && (
+        <Confirm
+          title={confirmDlg.title}
+          message={confirmDlg.message}
+          confirmText={confirmDlg.confirmText}
+          danger={confirmDlg.danger}
+          onConfirm={confirmDlg.onConfirm}
+          onClose={closeConfirm}
+        />
       )}
     </div>
   );
