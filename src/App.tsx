@@ -117,7 +117,7 @@ export default function App() {
       )}
 
       {decks.length === 0 ? (
-        <EmptyStateView onCreate={openCreateDeck} />
+        <EmptyStateView createDeck={createDeck} />
       ) : mode === 'learn' && learnDeck ? (
         <LearnView
           deck={learnDeck}
