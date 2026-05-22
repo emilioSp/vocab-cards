@@ -37,6 +37,7 @@ export function DecksProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
+  // load decks on first mount
   useEffect(() => { load(); }, [load]);
 
   const handleCreateDeck = useCallback(async (
