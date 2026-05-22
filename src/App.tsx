@@ -1,16 +1,17 @@
+import { DecksProvider } from './context/DecksContext';
+import { CardsProvider } from './context/CardsContext';
 import { useDecks } from './hooks/useDecks';
 import { useViewManager } from './hooks/useViewManager';
 import TopBar from './components/TopBar';
-import EmptyStateView from './views/EmptyStateView';
 import DeckGridView from './views/DeckGridView';
 import DeckDetailView from './views/DeckDetailView';
 import LearnView from './views/LearnView';
 
-export default function App() {
+function AppShell() {
   const { decks, loading, error, clearError,
           createDeck, updateDeck, deleteDeck, adjustCardCount } = useDecks();
   const { mode, view, learnDeckId, currentDeck, learnDeck,
-          changeMode, setView, setLearnDeckId } = useViewManager(decks);
+          changeMode, setView, setLearnDeckId } = useViewManager();
 
   if (loading) {
     return (
@@ -28,17 +29,13 @@ export default function App() {
         canLearn={decks.length > 0}
         decks={decks}
       />
-
       {error && (
         <div className="bg-bad/10 border border-bad/30 text-bad-700 text-sm px-6 py-3 flex items-center justify-between">
           {error}
           <button onClick={clearError} className="text-bad-700 opacity-60 hover:opacity-100 bg-transparent border-0 cursor-pointer">✕</button>
         </div>
       )}
-
-      {decks.length === 0 ? (
-        <EmptyStateView createDeck={createDeck} />
-      ) : mode === 'learn' && learnDeck ? (
+      {mode === 'learn' && learnDeck ? (
         <LearnView
           deck={learnDeck}
           allDecks={decks.filter(d => d.id !== learnDeckId)}
@@ -65,5 +62,15 @@ export default function App() {
         />
       ) : null}
     </div>
+  );
+}
+
+export default function App() {
+  return (
+    <DecksProvider>
+      <CardsProvider>
+        <AppShell />
+      </CardsProvider>
+    </DecksProvider>
   );
 }

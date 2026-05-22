@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useDecks } from './useDecks';
 import { type Deck } from '../types';
 
 export type AppMode = 'manage' | 'learn'
@@ -15,7 +16,8 @@ type UseViewManagerResult = {
   setLearnDeckId: (id: string | null) => void
 }
 
-export function useViewManager(decks: Deck[]): UseViewManagerResult {
+export function useViewManager(): UseViewManagerResult {
+  const { decks } = useDecks();
   const [mode, setMode] = useState<AppMode>('manage');
   const [view, setView] = useState<AppView>({ screen: 'home' });
   const [learnDeckId, setLearnDeckId] = useState<string | null>(null);
