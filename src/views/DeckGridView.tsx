@@ -7,8 +7,8 @@ import Icon from '../components/Icon';
 
 type DeckGridViewProps = {
   decks: Deck[]
-  createDeck: (name: string, coverColor: string, icon: string) => Promise<unknown>
-  updateDeck: (deck: Deck, name: string, coverColor: string, icon: string) => Promise<unknown>
+  createDeck: (name: string, coverColor: string, icon: string) => Promise<Deck | null>
+  updateDeck: (deck: Deck, name: string, coverColor: string, icon: string) => Promise<Deck | null>
   deleteDeck: (id: string) => Promise<void>
   onOpenDeck: (id: string) => void
 }
