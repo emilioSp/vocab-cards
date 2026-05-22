@@ -8,8 +8,8 @@ import DeckDetailView from './views/DeckDetailView';
 import LearnView from './views/LearnView';
 
 function AppShell() {
-  const { decks, loading, error, clearError } = useDecks();
-  const { mode, view, learnDeckId, currentDeck, learnDeck,
+  const { loading, error, clearError } = useDecks();
+  const { mode, view, currentDeck, learnDeck,
           changeMode, setView, setLearnDeckId } = useViewManager();
 
   if (loading) {
@@ -32,7 +32,6 @@ function AppShell() {
       {mode === 'learn' && learnDeck ? (
         <LearnView
           deck={learnDeck}
-          allDecks={decks.filter(d => d.id !== learnDeckId)}
           onPickDeck={setLearnDeckId}
           onExit={() => changeMode('manage')}
         />

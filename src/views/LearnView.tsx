@@ -1,4 +1,5 @@
 import { type Deck, type CardData } from '../types';
+import { useDecks } from '../hooks/useDecks';
 import { useCards } from '../hooks/useCards';
 import { useModalManager } from '../hooks/useModalManager';
 import { useLearnSession } from '../hooks/useLearnSession';
@@ -47,12 +48,13 @@ function VerdictBtn({ variant, hint, title, disabled, onClick, children }: Verdi
 
 type LearnViewProps = {
   deck: Deck
-  allDecks: Deck[]
   onPickDeck: (id: string) => void
   onExit: () => void
 }
 
-export default function LearnView({ deck, allDecks, onPickDeck, onExit }: LearnViewProps) {
+export default function LearnView({ deck, onPickDeck, onExit }: LearnViewProps) {
+  const { decks } = useDecks();
+  const allDecks = decks.filter(d => d.id !== deck.id);
   const { cards, updateCard, loading } = useCards(deck.id);
   const { cardEditor, openEditCard, closeCardEditor } = useModalManager();
   const session = useLearnSession(cards);
