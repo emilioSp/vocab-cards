@@ -61,7 +61,8 @@ export default function DeckDetailView({
     if (cardEditor?.id) {
       await updateCard(cardEditor.id, data);
     } else {
-      await createCard(data);
+      const created = await createCard(data);
+      if (!created) return;
       adjustCardCount(deck.id, +1);
     }
     closeCardEditor();
