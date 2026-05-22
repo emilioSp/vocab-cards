@@ -1,17 +1,18 @@
-import { type Deck } from '../types';
 import { type AppMode } from '../hooks/useViewManager';
+import { useDecks } from '../hooks/useDecks';
 import Icon from './Icon';
 
 type TopBarProps = {
   mode: AppMode
   onModeChange: (mode: AppMode) => void
-  canLearn: boolean
-  decks: Deck[]
 }
 
-export default function TopBar({ mode, onModeChange, canLearn, decks }: TopBarProps) {
+export default function TopBar({ mode, onModeChange }: TopBarProps) {
+  const { decks } = useDecks();
+  const canLearn = decks.length > 0;
   const totalDecks = decks.length;
   const totalCards = decks.reduce((sum, d) => sum + d.cardCount, 0);
+
   return (
     <div className="flex items-center gap-[18px] px-7 py-[14px] border-b border-ink-700/10 bg-cream-100/70 backdrop-blur-md sticky top-0 z-10">
       <div className="flex items-center gap-2.5 font-display font-bold text-lg tracking-tight">

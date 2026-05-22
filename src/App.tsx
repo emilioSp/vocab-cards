@@ -23,12 +23,7 @@ function AppShell() {
 
   return (
     <div className="min-h-screen flex flex-col font-sans text-ink antialiased">
-      <TopBar
-        mode={mode}
-        onModeChange={changeMode}
-        canLearn={decks.length > 0}
-        decks={decks}
-      />
+      <TopBar mode={mode} onModeChange={changeMode} />
       {error && (
         <div className="bg-bad/10 border border-bad/30 text-bad-700 text-sm px-6 py-3 flex items-center justify-between">
           {error}
