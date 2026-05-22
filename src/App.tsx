@@ -12,8 +12,6 @@ export default function App() {
   const { mode, view, learnDeckId, currentDeck, learnDeck,
           changeMode, setView, setLearnDeckId } = useViewManager(decks);
 
-  const totalCards = decks.reduce((sum, d) => sum + d.cardCount, 0);
-
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center font-sans text-ink-300">
@@ -28,8 +26,7 @@ export default function App() {
         mode={mode}
         onModeChange={changeMode}
         canLearn={decks.length > 0}
-        totalDecks={decks.length}
-        totalCards={totalCards}
+        decks={decks}
       />
 
       {error && (
