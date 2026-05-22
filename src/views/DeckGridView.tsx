@@ -1,19 +1,18 @@
 import { type Deck } from '../types';
+import { useDecks } from '../hooks/useDecks';
 import { useModalManager } from '../hooks/useModalManager';
 import DeckCard from '../components/DeckCard';
 import DeckEditor from '../components/DeckEditor';
 import Confirm from '../components/Confirm';
+import EmptyStateView from './EmptyStateView';
 import Icon from '../components/Icon';
 
 type DeckGridViewProps = {
-  decks: Deck[]
-  createDeck: (name: string, coverColor: string, icon: string) => Promise<Deck | null>
-  updateDeck: (deck: Deck, name: string, coverColor: string, icon: string) => Promise<Deck | null>
-  deleteDeck: (id: string) => Promise<void>
   onOpenDeck: (id: string) => void
 }
 
-export default function DeckGridView({ decks, createDeck, updateDeck, deleteDeck, onOpenDeck }: DeckGridViewProps) {
+export default function DeckGridView({ onOpenDeck }: DeckGridViewProps) {
+  const { decks, createDeck, updateDeck, deleteDeck } = useDecks();
   const {
     deckEditor, confirmDlg,
     openCreateDeck, openEditDeck, closeDeckEditor,
@@ -37,6 +36,8 @@ export default function DeckGridView({ decks, createDeck, updateDeck, deleteDeck
       closeDeckEditor();
     },
   });
+
+  if (decks.length === 0) return <EmptyStateView createDeck={createDeck} />;
 
   return (
     <div className="max-w-[1180px] mx-auto px-7 pt-9 pb-20 w-full">

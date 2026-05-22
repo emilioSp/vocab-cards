@@ -9,7 +9,7 @@ import LearnView from './views/LearnView';
 
 function AppShell() {
   const { decks, loading, error, clearError,
-          createDeck, updateDeck, deleteDeck, adjustCardCount } = useDecks();
+          updateDeck, deleteDeck, adjustCardCount } = useDecks();
   const { mode, view, learnDeckId, currentDeck, learnDeck,
           changeMode, setView, setLearnDeckId } = useViewManager();
 
@@ -38,13 +38,7 @@ function AppShell() {
           onExit={() => changeMode('manage')}
         />
       ) : view.screen === 'home' ? (
-        <DeckGridView
-          decks={decks}
-          createDeck={createDeck}
-          updateDeck={updateDeck}
-          deleteDeck={deleteDeck}
-          onOpenDeck={id => setView({ screen: 'deck-detail', deckId: id })}
-        />
+        <DeckGridView onOpenDeck={id => setView({ screen: 'deck-detail', deckId: id })} />
       ) : currentDeck ? (
         <DeckDetailView
           deck={currentDeck}
